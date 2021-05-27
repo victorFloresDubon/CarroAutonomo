@@ -10,9 +10,9 @@ import math
 
 # Config vars
 log_enabled = True
-server_ip = '192.168.1.235'
-server_port_camera = 8000
-server_port_ultrasonic = 8001
+server_ip = '192.168.0.13'
+server_port_camera = 7690
+server_port_ultrasonic = 7692
 
 # Video configuration
 image_gray_enabled = False
