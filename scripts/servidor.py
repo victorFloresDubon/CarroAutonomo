@@ -11,7 +11,7 @@ import time
 
 # Config vars
 log_enabled = True
-server_ip = '192.168.0.7'
+server_ip = '192.168.0.5'
 server_port_camera = 7690
 server_port_ultrasonic = 7692
 server_port_mensaje = 7691
@@ -39,7 +39,7 @@ color_verde = (0, 168, 0)
 image_font = cv2.FONT_HERSHEY_PLAIN
 image_font_size = 1.0
 image_font_stroke = 2
-
+#prueba com
 # Client socket
 
 
