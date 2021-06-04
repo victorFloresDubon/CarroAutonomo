@@ -7,7 +7,7 @@ import numpy as np
 import math
 
 # Config vars
-server_ip = '192.168.0.13'
+server_ip = '192.168.0.7'
 server_port = 7690
 image_fps = 24 
 

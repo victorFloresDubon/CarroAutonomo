@@ -10,8 +10,8 @@ COLOR_RESET='\033[0m';
 
 ERROR="false";
 
-SERVERIP=192.168.1.235;
-SERVERPORT=8000;
+SERVERIP=192.168.0.13;
+SERVERPORT=7690;
 
 # Use -gt 1 to consume two arguments per pass in the loop (e.g. each
 # argument has a corresponding value to go with it).
