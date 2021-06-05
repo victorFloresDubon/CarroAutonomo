@@ -11,7 +11,7 @@ import time
 
 # Config vars
 log_enabled = True
-server_ip = '192.168.0.5'
+server_ip = '192.168.0.2'
 server_port_camera = 7690
 server_port_ultrasonic = 7692
 server_port_mensaje = 7691
@@ -96,7 +96,6 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
 
 
     def handle(self):
-        mensajehandler = MessageHandler
         stream_bytes = b' '
         global ultrasonic_sensor_distance
         # Object detection initialization (STOP sign, traffic light) using cascade classifiers
@@ -139,8 +138,7 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
                     if detection_stop > 0:
                         print( 'ALTO detectado!' )
                         # Envía instrucción para detenerse
-                        mensaje="D"
-                        mensajehandler.enviar_mensaje(mensaje)
+                        
                         #clientesocket.send(bytes("P", "utf-8"))
                         #self.connection.send(bytes("P", "utf-8"))
                     elif detection_traffic_light > 0:
@@ -154,6 +152,10 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
                     if ultrasonic_sensor_distance is not None:
                         if ultrasonic_sensor_distance < ultrasonic_stop_distance:
                             cv2.putText( image, 'OBJETO ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_red, image_font_stroke, cv2.LINE_AA)
+                            print('DETENER')
+                            mensajehandler = MessageHandler
+                            mensaje="P"
+                            mensajehandler.enviar_mensaje(mensaje)
                             if log_enabled: 
                                 print( 'Alto, obstáculo en frente! >> Distancia: ' + str( ultrasonic_sensor_distance ) + 'cm - Límite: '+ str(ultrasonic_stop_distance ) + 'cm' ) 
                                 # Envía instucción para detener el vehículo
@@ -161,10 +163,20 @@ class StreamHandlerVideocamera(socketserver.StreamRequestHandler):
                                 #clientesocket.send(bytes("P", "utf-8"))
                         elif ultrasonic_sensor_distance < 1000.0:
                             cv2.putText( image, 'NO HAY OBJETO CERCANO ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_blanco, image_font_stroke, cv2.LINE_AA)
+                            print( 'AVANZAR ')
+                            mensajehandler = MessageHandler
+                            mensaje="D"
+                            mensajehandler.enviar_mensaje(mensaje)
                             # Envía instrucción para avanzar
                             #self.connection.send(bytes("D", "utf-8"))
                             #clientesocket.send(bytes("D", "utf-8"))
                             #mensajehandler.enviar_mensaje("D")
+                        elif ultrasonic_sensor_distance == 0.0:
+                            cv2.putText( image, 'RETROCEDA ' + str( ultrasonic_sensor_distance ) + 'cm', ultrasonic_text_position, image_font, image_font_size, color_blanco, image_font_stroke, cv2.LINE_AA)
+                            print( 'RETROCEDER')
+                            mensajehandler = MessageHandler
+                            mensaje="R"
+                            mensajehandler.enviar_mensaje(mensaje)
                         else: 
                             cv2.putText( image, 'DETECCION DE OBJETO DESHABILITADA', ultrasonic_text_position, image_font, image_font_size, color_yellow, image_font_stroke, cv2.LINE_AA)
 
@@ -191,16 +203,15 @@ class MessageHandler():
 #        self.s.listen(5)
     
     def enviar_mensaje(mensaje):
-        time.sleep(5)
+        #time.sleep(5)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind((server_ip, server_port_mensaje))
         s.listen(5)
-        while True:
-            clientesocket, direccion = s.accept()
-            print(f"Enviando mensaje a {direccion}....\n")
-            clientesocket.send(bytes(mensaje, "utf-8"))
-            print("Mensaje enviado exitosamente!\n")
-            break
+        clientesocket, direccion = s.accept()
+        print(f"Enviando mensaje a {direccion}....\n")
+        clientesocket.send(bytes(mensaje, "utf-8"))
+        print("Mensaje enviado exitosamente!\n")
+        s.close()
             
 # Class to handle the different threads 
 class ThreadServer( object ):
@@ -232,6 +243,7 @@ class ObjectDetection(object):
         self.red_light = False
         self.green_light = False
         self.yellow_light = False
+        
 
     def detect(self, cascade_classifier, image_gray, image):
 
@@ -258,7 +270,6 @@ class ObjectDetection(object):
             if width/height == 1:
                 cv2.putText( image, 'STOP', (x_pos, y_pos), image_font, image_font_size, color_red, image_font_stroke )
                 cv2.rectangle( image, (x_pos+5, y_pos+5), (x_pos+width-5, y_pos+height-5), color_red, stroke_width )
-            
             # Traffic lights
             else:
                 roi = image_gray[y_pos+10:y_pos + height-10, x_pos+10:x_pos + width-10]
@@ -270,19 +281,33 @@ class ObjectDetection(object):
                     cv2.circle(roi, maxLoc, 10, (255, 0, 0), 2)
                     
                     
-                    # Red light
-                    if 1.0/8*(height-30) < maxLoc[1] < 4.0/8*(height-30):
+                    # Luz Roja
+                    if 1.0/8*(height-30) < maxLoc[1] < 3.5/8*(height-30):
                         cv2.putText(image, 'Luz ROJA', (x_pos, y_pos), image_font, image_font_size, color_red, image_font_stroke )
                         cv2.rectangle( image, (x_pos+5, y_pos+5), (x_pos+width-5, y_pos+height-5), color_blanco, stroke_width )
+                        mensajehandler = MessageHandler
+                        mensaje="P"
+                        mensajehandler.enviar_mensaje(mensaje)
                         self.red_light = True
-                    
-                    
+                        print('LUZ ROJA - DETENER')           
                     # Luz verde
-                    elif 4.0/8*(height-30) < maxLoc[1] < 5.5/8*(height-30):
+                    elif 4.0/8*(height-30) < maxLoc[1] < 8.5/8*(height-30):
                         cv2.putText(image, 'Luz VERDE', (x_pos, y_pos), image_font, image_font_size, color_verde, image_font_stroke )
                         cv2.rectangle( image, (x_pos+5, y_pos+5), (x_pos+width-5, y_pos+height-5), color_blanco, stroke_width )
+                        mensajehandler = MessageHandler
+                        mensaje="A"
+                        mensajehandler.enviar_mensaje(mensaje)
                         self.green_light = True
-
+                        print('LUZ VERDE - AVANZAR')
+                    # Green light
+                    elif 5.5/8*(height-30) < maxLoc[1] < height-30:
+                        cv2.putText(image, 'Luz VERDE', (x_pos, y_pos), image_font, image_font_size, color_verde, image_font_stroke )
+                        cv2.rectangle( image, (x_pos+5, y_pos+5), (x_pos+width-5, y_pos+height-5), color_blanco, stroke_width )
+                        mensajehandler = MessageHandler
+                        mensaje="A"
+                        mensajehandler.enviar_mensaje(mensaje)
+                        self.green_light = True
+                        print('LUZ VERDE - AVANZAR')
         return value
 
 
