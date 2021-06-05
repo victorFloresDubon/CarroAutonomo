@@ -1,3 +1,12 @@
+# Integrantes - Proyecto Final
+## Inteligencia Artificial - UMG - Boca del Monte
+
+- Gari Lester Mendoza Bedoya 7690-17-14228
+- Selvin Omar Castellanos 7690-17-14269
+- José Pablo Araiz 7690-17-9477
+- Víctor Guillermo Flores Dubón 7690-17-13943
+- Rony Alberto Cux Vásquez 7690-17-889
+
 # Autonomous RC Car
 
 El objetivo de este proyecto es construir un vehículo autónomo (un coche radio control que conduzca sólo), mediante OpenCV y Tensorflow, utilizando una Raspberry Pi y su cámara. En este repositorio puedes encontrar todo el código que vaya utilizando.
